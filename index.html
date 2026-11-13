@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="ConnectChat — free internet messaging and calling.">
+  <title>ConnectChat</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section id="authView" class="auth-card">
+      <div class="brand-mark">C</div>
+      <h1>ConnectChat</h1>
+      <p class="muted">Messages and calls. Wherever you are.</p>
+      <form id="authForm">
+        <label>Email address<input id="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="password" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters"></label>
+        <div class="button-row">
+          <button type="submit" class="primary" id="loginBtn">Log in</button>
+          <button type="button" class="secondary" id="signupBtn">Create account</button>
+        </div>
+      </form>
+      <p id="authStatus" class="status" role="status"></p>
+      <p class="tiny muted">You need a free Supabase project configured in <code>app.js</code>.</p>
+    </section>
+
+    <section id="appView" class="app hidden">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark small">C</span><div><strong>ConnectChat</strong></div></div>
+        <div class="topbar-actions">
+          <button id="enableNotificationsBtn" class="header-icon" type="button" aria-label="Enable chat notifications" title="Enable chat notifications">🔔</button>
+          <button class="header-icon" type="button" aria-label="Payments">₹</button>
+          <button id="openCameraBtn" class="header-icon" type="button" aria-label="Open camera" title="Camera">📷</button>
+          <button id="settingsBtn" class="header-icon menu-dots" type="button" aria-label="Settings">⋮</button>
+        </div>
+      </header>
+      <div class="workspace">
+        <aside class="sidebar">
+          <div class="chat-discovery">
+            <label class="search-pill"><span>⌕</span><input id="visualSearch" type="search" placeholder="Search" aria-label="Search chats"></label>
+            <div class="filter-chips" aria-label="Chat filters">
+              <button class="filter-chip active" data-filter="all" type="button">All</button>
+              <button class="filter-chip" data-filter="unread" type="button">Unread <span id="unreadTotalBadge" class="unread-total-badge">0</span></button>
+              <button class="filter-chip" data-filter="favourites" type="button">Favourites</button>
+              <button class="filter-chip" data-filter="groups" type="button">Groups</button>
+              <button class="filter-chip add-chip" type="button" aria-label="Add filter">＋</button>
+            </div>
+          </div>
+          <section class="friend-tools">
+            <h2>Chats</h2>
+            <form id="friendSearchForm" class="join-form">
+              <input id="friendSearchInput" maxlength="40" placeholder="Search username" aria-label="Search username">
+              <button class="secondary" type="submit">Search</button>
+            </form>
+            <div id="friendSearchResults" class="people-list"></div>
+            <h3>FRIEND REQUESTS</h3>
+            <div id="requestList" class="people-list"></div>
+            <h3>CONTACTS</h3>
+            <div id="friendList" class="people-list"></div>
+          </section>
+          <section id="groupSection" class="group-section hidden" aria-label="Groups">
+            <div class="groups-title-row"><div><h2>Groups</h2><p class="tiny muted">Create a group or join with an invite code.</p></div><button id="newRoomBtn" class="primary create-group-btn" type="button">＋ Create group</button></div>
+            <form id="joinForm" class="join-form group-join-form">
+              <input id="roomCodeInput" maxlength="8" placeholder="Enter group invite code" aria-label="Group invite code">
+              <button class="secondary" type="submit">Join group</button>
+            </form>
+            <div id="roomList" class="room-list"></div>
+          </section>
+          <div class="sidebar-foot"><span class="online-dot"></span> Signed in</div>
+        </aside>
+
+        <section class="chat-panel">
+          <div id="emptyState" class="empty-state">
+            <div class="empty-icon">✉</div><h2>Your conversations start here</h2>
+            <p>Create a room or join one with an invite code.</p>
+          </div>
+          <div id="dmView" class="room-view hidden">
+            <header class="room-header">
+              <button class="chat-back-btn" type="button" aria-label="Back to chats">‹</button>
+              <div class="room-heading-copy"><h2 id="dmTitle">Private chat</h2><p id="dmSub" class="muted tiny">Only you and your friend can see these messages.</p></div>
+              <div class="call-actions">
+                <button id="voiceBtn" class="call-btn" title="Start voice call">☎ <span>Voice</span></button>
+                <button id="videoBtn" class="call-btn" title="Start video call">▣ <span>Video</span></button>
+              </div>
+            </header>
+            <div id="incomingCall" class="incoming-call hidden" role="alert">
+              <span id="incomingCallText">Incoming call…</span>
+              <button id="acceptCallBtn" class="primary">Accept</button>
+              <button id="declineCallBtn" class="danger">Decline</button>
+            </div>
+            <div id="callPanel" class="call-panel hidden">
+              <div class="video-grid">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <video id="localVideo" autoplay muted playsinline></video>
+              </div>
+              <div class="call-controls">
+                <span id="callStatus">Connecting…</span>
+                <button id="videoSizeBtn" class="secondary">Larger video</button>
+                <button id="noiseBtn" class="secondary" aria-pressed="true" title="Toggle microphone noise cancellation">Noise cancellation: On</button>
+                <button id="hdBtn" class="secondary" aria-pressed="true" title="Toggle HD video quality">HD video: On</button>
+                <button id="muteBtn" class="secondary">Mute mic</button>
+                <button id="cameraBtn" class="secondary">Camera off</button>
+                <button id="switchCallCameraBtn" class="secondary hidden" type="button" title="Switch between front and rear cameras">⇄ Switch camera</button>
+                <button id="hangupBtn" class="danger">End call</button>
+              </div>
+            </div>
+            <div id="dmMessages" class="messages" aria-live="polite"></div>
+            <div id="dmVoicePreview" class="voice-preview hidden" aria-live="polite">
+              <button id="dmVoiceDelete" class="voice-delete" type="button" aria-label="Delete voice recording" title="Delete recording">✕</button>
+              <button id="dmVoicePause" class="voice-control" type="button">Play preview</button>
+              <audio id="dmVoiceAudio" class="voice-preview-audio" controls></audio>
+              <span id="dmVoiceStatus" class="voice-status">Voice message ready</span>
+              <button id="dmVoiceSend" class="primary voice-send" type="button">Send voice</button>
+            </div>
+            <form id="dmMessageForm" class="composer">
+              <button class="attach-btn" type="button" data-attach="dm" aria-label="Attach image, video or file" title="Attach image, video or file">＋</button>
+              <input id="dmAttachmentInput" class="hidden" type="file" accept="image/*,video/*,*/*">
+              <input id="dmMessageInput" maxlength="4000" autocomplete="off" placeholder="Message your friend…" aria-label="Private message">
+              <button class="primary send-btn" type="submit" aria-label="Send message. Press and hold to record voice message">Send</button>
+            </form>
+          </div>
+          <div id="roomView" class="room-view hidden">
+            <header class="room-header">
+              <button class="chat-back-btn" type="button" aria-label="Back to chats">‹</button>
+              <div class="room-heading-copy"><h2 id="roomTitle">Chat room</h2><p id="roomSub" class="muted tiny"></p></div>
+              <div class="room-header-actions"><button id="editRoomNameBtn" class="quiet hidden" type="button" title="Edit group name">Edit name</button><button id="shareBtn" class="quiet" title="Copy invite code">Invite</button></div>
+            </header>
+            <div id="messages" class="messages" aria-live="polite"></div>
+            <div id="roomVoicePreview" class="voice-preview hidden" aria-live="polite">
+              <button id="roomVoiceDelete" class="voice-delete" type="button" aria-label="Delete voice recording" title="Delete recording">✕</button>
+              <button id="roomVoicePause" class="voice-control" type="button">Play preview</button>
+              <audio id="roomVoiceAudio" class="voice-preview-audio" controls></audio>
+              <span id="roomVoiceStatus" class="voice-status">Voice message ready</span>
+              <button id="roomVoiceSend" class="primary voice-send" type="button">Send voice</button>
+            </div>
+            <form id="messageForm" class="composer">
+              <button class="attach-btn" type="button" data-attach="room" aria-label="Attach image, video or file" title="Attach image, video or file">＋</button>
+              <input id="roomAttachmentInput" class="hidden" type="file" accept="image/*,video/*,*/*">
+              <input id="messageInput" maxlength="4000" autocomplete="off" placeholder="Write a message…" aria-label="Write a message">
+              <button class="primary send-btn" type="submit" aria-label="Send message. Press and hold to record voice message">Send</button>
+            </form>
+          </div>
+        </section>
+      </div>
+      <section id="callsView" class="calls-view hidden" aria-label="Call history">
+        <header class="calls-heading"><div><h2>Calls</h2><p class="muted tiny">Your recent voice and video calls</p></div><button id="clearCallHistoryBtn" class="quiet" type="button">Clear history</button></header>
+        <div id="callHistoryList" class="call-history-list"></div>
+      </section>
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-tab="chats" type="button"><span class="nav-icon">▣</span><span>Chats</span></button>
+        <button class="nav-item" data-tab="updates" type="button"><span class="nav-icon">◉</span><span>Updates</span></button>
+        <button class="nav-item" data-tab="communities" type="button"><span class="nav-icon">◎</span><span>Communities</span></button>
+        <button class="nav-item" data-tab="calls" type="button"><span class="nav-icon">⌕</span><span>Calls</span></button>
+      </nav>
+      <section id="settingsPanel" class="settings-panel hidden" aria-label="Settings">
+        <div class="settings-heading"><h2>Settings</h2><button id="closeSettingsBtn" class="header-icon" type="button" aria-label="Close settings">×</button></div>
+        <div class="settings-account"><span class="muted tiny">GMAIL / EMAIL</span><strong id="userLabel"></strong></div>
+        <section class="notification-settings" aria-labelledby="notificationHeading">
+          <div class="notification-setting-copy">
+            <h3 id="notificationHeading">Notifications</h3>
+            <p id="notificationStatus" class="muted tiny">Control chat alerts on this device.</p>
+          </div>
+          <label class="settings-switch" for="notificationToggle" aria-label="Enable or disable chat notifications">
+            <input id="notificationToggle" type="checkbox" role="switch">
+            <span class="settings-switch-track" aria-hidden="true"></span>
+          </label>
+        </section>
+        <section class="theme-settings sound-settings" aria-labelledby="soundHeading">
+          <h3 id="soundHeading">Notification sound</h3>
+          <p class="muted tiny">Choose the sound ConnectChat plays while this page is open or active in the background.</p>
+          <label for="notificationSoundSelect">Alert sound</label>
+          <select id="notificationSoundSelect" aria-label="Choose notification sound">
+            <option value="classic">Classic</option>
+            <option value="chime">Soft chime</option>
+            <option value="bell">Bell</option>
+            <option value="digital">Digital</option>
+            <option value="none">Silent</option>
+          </select>
+          <button id="testNotificationSoundBtn" class="secondary" type="button">▶ Test sound</button>
+          <p class="muted tiny">When the website is fully closed, the browser/phone controls the system notification sound. Custom website sounds cannot be guaranteed in that state.</p>
+        </section>
+        <section class="theme-settings" aria-labelledby="themeHeading">
+          <h3 id="themeHeading">Appearance</h3>
+          <p class="muted tiny">Choose a theme for your chats and app.</p>
+          <label for="themeSelect">Theme mode</label>
+          <select id="themeSelect" aria-label="Choose theme mode">
+            <option value="whatsapp">WhatsApp Dark</option>
+            <option value="midnight">OLED Midnight</option>
+            <option value="light">Light</option>
+            <option value="ocean">Ocean</option>
+            <option value="forest">Forest</option>
+            <option value="sunset">Sunset</option>
+          </select>
+        </section>
+        <form id="profileForm" class="stack-form settings-profile">
+          <div class="profile-photo-editor">
+            <img id="profileAvatarPreview" class="profile-avatar-preview" src="" alt="Your profile picture" hidden>
+            <div class="profile-photo-controls">
+              <label for="avatarInput">Profile picture</label>
+              <input id="avatarInput" type="file" accept="image/*" aria-label="Choose profile picture">
+              <small class="muted tiny">JPG, PNG or WebP · up to 5 MB</small>
+            </div>
+          </div>
+          <label>Username<input id="usernameInput" maxlength="24" placeholder="Choose username" aria-label="Your username"></label>
+          <label>Display name<input id="displayNameInput" maxlength="40" placeholder="Your display name" aria-label="Your display name"></label>
+          <button class="primary" type="submit">Save profile</button>
+        </form>
+        <p id="myHandle" class="tiny muted"></p>
+        <button id="logoutBtn" class="danger settings-logout" type="button">Log out</button>
+      </section>
+      <p id="appStatus" class="app-status" role="status"></p>
+    </section>
+  <section id="cameraModal" class="camera-modal hidden" role="dialog" aria-modal="true" aria-label="Camera">
+    <div class="camera-panel">
+      <header class="camera-heading"><strong>Camera</strong><button id="closeCameraBtn" class="header-icon" type="button" aria-label="Close camera">×</button></header>
+      <div class="camera-stage"><video id="capturePreview" autoplay playsinline muted></video><img id="capturedPreview" alt="Captured preview" hidden><div id="cameraHint" class="camera-hint">Allow camera access to begin.</div></div>
+      <div class="camera-modes"><button id="photoModeBtn" class="active" type="button">Photo</button><button id="videoModeBtn" type="button">Video</button><button id="switchCameraBtn" type="button" title="Switch front/back camera">⇄ Switch</button></div>
+      <div class="camera-controls"><button id="discardCaptureBtn" class="secondary" type="button" disabled>Discard</button><button id="captureBtn" class="primary" type="button">Take photo</button><button id="sendCaptureBtn" class="primary" type="button" disabled>Send to chat</button></div>
+      <p class="tiny muted">Captured media is sent to the currently open private chat or group.</p>
+    </div>
+  </section>
+  </main>
+  <script>
+    (() => {
+      const themes = ["whatsapp", "midnight", "light", "ocean", "forest", "sunset"];
+      const selector = document.getElementById("themeSelect");
+      let current = localStorage.getItem("connectchat-theme") || "whatsapp";
+      if (!themes.includes(current)) current = "whatsapp";
+      function applyTheme() {
+        document.documentElement.dataset.theme = current;
+        if (selector) selector.value = current;
+        localStorage.setItem("connectchat-theme", current);
+      }
+      applyTheme();
+      selector?.addEventListener("change", event => {
+        current = themes.includes(event.target.value) ? event.target.value : "whatsapp";
+        applyTheme();
+      });
+    })();
+  </script>
+  <script>
+    document.querySelectorAll(".filter-chip[data-filter]").forEach(chip => chip.addEventListener("click", () => {
+      document.querySelectorAll(".filter-chip").forEach(item => item.classList.remove("active"));
+      chip.classList.add("active");
+      const groupsMode = chip.dataset.filter === "groups";
+      document.getElementById("groupSection")?.classList.toggle("hidden", !groupsMode);
+      document.querySelector(".friend-tools")?.classList.toggle("hidden", groupsMode);
+      const search = document.getElementById("visualSearch");
+      if (search) { search.placeholder = groupsMode ? "Search groups" : "Search chats"; search.dispatchEvent(new Event("input")); }
+    }));
+    document.querySelectorAll(".nav-item").forEach(tab => tab.addEventListener("click", () => {
+      document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+      tab.classList.add("active");
+    }));
+    document.getElementById("visualSearch")?.addEventListener("input", event => {
+      const q = event.target.value.toLowerCase();
+      const groupsMode = document.querySelector('.filter-chip[data-filter="groups"]')?.classList.contains("active");
+      document.querySelectorAll(groupsMode ? ".room-item" : ".person-row").forEach(row => row.hidden = !row.textContent.toLowerCase().includes(q));
+    });
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
